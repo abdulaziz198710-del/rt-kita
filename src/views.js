@@ -23,6 +23,12 @@ function layout({ title, user, content, active = '' }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#1d6f5c">
+<link rel="manifest" href="/public/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/public/icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RT Kita">
 <title>${escapeHtml(title)} · RT Kita</title>
 <link rel="stylesheet" href="/public/style.css">
 </head>

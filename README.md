@@ -38,8 +38,22 @@ Mockup setiap halaman ada di [`docs/screenshots/`](docs/screenshots) dan bisa di
 | Dashboard pengurus (HP) | [10-mobile-dashboard-pengurus.png](docs/screenshots/10-mobile-dashboard-pengurus.png) |
 | Kas RT (HP) | [11-mobile-kas-rt.png](docs/screenshots/11-mobile-kas-rt.png) |
 | Aduan (HP) | [12-mobile-aduan.png](docs/screenshots/12-mobile-aduan.png) |
+| Layar utama HP setelah di-install (PWA) | [13-mobile-home-screen.png](docs/screenshots/13-mobile-home-screen.png) |
 
 Tampilan **responsif** — saat dibuka di HP, navigasi menumpuk, kartu & form menjadi satu kolom, tombol menjadi full-width, dan tabel bisa digeser horizontal (`public/style.css`, media query `max-width: 640px`).
+
+## Install sebagai aplikasi di HP (PWA)
+
+Aplikasi ini sudah bisa dipasang di layar utama seperti aplikasi native:
+
+- **Android/Chrome**: buka aplikasi → menu ⋮ → **"Tambah ke layar utama"** / "Install app"
+- **iPhone/Safari**: tombol Share → **"Tambah ke Layar Utama"**
+
+Setelah di-install: muncul ikon **RT Kita** di layar utama, terbuka full-screen tanpa address bar (mode `standalone`), dan tetap bisa dibuka **offline** (service worker `public/sw.js` menyimpan aset & halaman yang pernah dibuka; halaman baru tetap butuh koneksi).
+
+Catatan: service worker berjalan di `http://localhost` saat development. Untuk dipakai online, wajib **HTTPS** — mis. deploy di belakang nginx/HTTPS, baru fitur install & offline aktif penuh.
+
+Ikon aplikasi (`public/icons/*.png`) di-generate oleh `npm run mockups`.
 
 ## Akun default (dari data contoh)
 

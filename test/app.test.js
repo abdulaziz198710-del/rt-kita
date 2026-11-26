@@ -284,6 +284,44 @@ test('halaman tidak dikenal mengembalikan 404', async () => {
   }
 });
 
+test('PWA: manifest, service worker, ikon, dan registrasi SW tersedia', async () => {
+  const { server, base } = await startServer();
+  try {
+    const manifest = await req(base, '/public/manifest.webmanifest');
+    assert.equal(manifest.status, 200);
+    assert.match(manifest.headers.get('content-type'), /manifest\+json/);
+    const m = JSON.parse(manifest.text);
+    assert.equal(m.short_name, 'RT Kita');
+    assert.equal(m.display, 'standalone');
+    assert.equal(m.start_url, '/');
+    assert.ok(m.icons.some((i) => i.sizes === '512x512' && i.purpose === 'any'));
+    assert.ok(m.icons.some((i) => i.purpose === 'maskable'));
+
+    const sw = await req(base, '/public/sw.js');
+    assert.equal(sw.status, 200);
+    assert.match(sw.headers.get('content-type'), /javascript/);
+    assert.match(sw.text, /addEventListener\('fetch'/);
+
+    for (const icon of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) {
+      const res = await req(base, '/public/icons/' + icon);
+      assert.equal(res.status, 200, icon);
+      assert.match(res.headers.get('content-type'), /image\/png/);
+    }
+
+    const login = await req(base, '/login');
+    assert.match(login.text, /rel="manifest"/);
+    assert.match(login.text, /apple-touch-icon/);
+    assert.match(login.text, /\/public\/app\.js/);
+
+    const appJs = await req(base, '/public/app.js');
+    assert.equal(appJs.status, 200);
+    assert.match(appJs.text, /serviceWorker\.register\('\/public\/sw\.js'\)/);
+  } finally {
+    server.closeAllConnections();
+    server.close();
+  }
+});
+
 test('logout menghapus sesi', async () => {
   const { server, base } = await startServer();
   try {

@@ -123,7 +123,7 @@ class Canvas {
   constructor(w, h, bg = C.bg) {
     this.w = w; this.h = h;
     this.data = Buffer.alloc(w * h * 4);
-    this.fillAll(bg);
+    if (bg) this.fillAll(bg);
   }
   fillAll(c) {
     const [r, g, b] = hex(c);
@@ -527,6 +527,93 @@ function screenAduanPengurus() {
   return c;
 }
 
+function roundedRect(c, x, y, w, h, r, col) {
+  for (let j = y; j < y + h; j++) {
+    for (let i = x; i < x + w; i++) {
+      const dx = Math.max(x + r - i, 0, i - (x + w - r - 1));
+      const dy = Math.max(y + r - j, 0, j - (y + h - r - 1));
+      if (dx * dx + dy * dy <= r * r) c.px(i, j, col);
+    }
+  }
+}
+
+function drawHouse(c, cx, cy, S, scale, col) {
+  const k = (S / 512) * scale;
+  const apexY = cy - 150 * k;
+  const baseY = cy - 20 * k;
+  for (let yy = Math.floor(apexY); yy <= baseY; yy++) {
+    const t = (yy - apexY) / Math.max(1, baseY - apexY);
+    const hw = 190 * k * t;
+    c.rect(Math.floor(cx - hw), Math.floor(yy), Math.ceil(hw * 2), 1, col);
+  }
+  c.rect(Math.floor(cx - 150 * k), Math.floor(baseY), Math.ceil(300 * k), Math.ceil(170 * k), col);
+  c.rect(Math.floor(cx - 34 * k), Math.floor(baseY + 60 * k), Math.ceil(68 * k), Math.ceil(110 * k), C.primary);
+  c.rect(Math.floor(cx - 125 * k), Math.floor(baseY + 28 * k), Math.ceil(58 * k), Math.ceil(48 * k), C.primary);
+  c.rect(Math.floor(cx + 67 * k), Math.floor(baseY + 28 * k), Math.ceil(58 * k), Math.ceil(48 * k), C.primary);
+}
+
+function resize(c, size) {
+  const out = new Canvas(size, size, null);
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const sx = Math.floor((x * c.w) / size);
+      const sy = Math.floor((y * c.h) / size);
+      const i = (sy * c.w + sx) * 4;
+      const j = (y * size + x) * 4;
+      out.data[j] = c.data[i];
+      out.data[j + 1] = c.data[i + 1];
+      out.data[j + 2] = c.data[i + 2];
+      out.data[j + 3] = c.data[i + 3];
+    }
+  }
+  return out;
+}
+
+function makeIcons(outDir) {
+  fs.mkdirSync(outDir, { recursive: true });
+  const icon512 = new Canvas(512, 512, null);
+  roundedRect(icon512, 0, 0, 512, 512, 116, C.primary);
+  drawHouse(icon512, 256, 256, 512, 1, '#ffffff');
+  icon512.save(path.join(outDir, 'icon-512.png'));
+  resize(icon512, 192).save(path.join(outDir, 'icon-192.png'));
+  const mask = new Canvas(512, 512, null);
+  mask.rect(0, 0, 512, 512, C.primary);
+  drawHouse(mask, 256, 256, 512, 0.6, '#ffffff');
+  mask.save(path.join(outDir, 'icon-maskable-512.png'));
+}
+
+function screenMobileHome() {
+  configure(390);
+  const c = new Canvas(390, 844, '#dde5ee');
+  c.text(24, 16, '09:41', 2, C.ink);
+  c.text(390 - 24 - c.textWidth('100%', 1), 18, '100%', 1, C.ink);
+  const labels = ['RT Kita', 'Pesan', 'Surel', 'Foto', 'Peta', 'Musik', 'Toko', 'Cuaca'];
+  const cols = [null, '#4a7fd4', '#d4574a', '#8a5fd0', '#3aa06a', '#d49a3a', '#c2549a', '#5aa7c2'];
+  const letters = ['', 'C', 'E', 'F', 'N', 'M', 'S', 'W'];
+  for (let i = 0; i < 8; i++) {
+    const x = 24 + (i % 4) * 88;
+    const y = 80 + Math.floor(i / 4) * 122;
+    if (i === 0) {
+      roundedRect(c, x, y, 64, 64, 15, C.primary);
+      drawHouse(c, x + 32, y + 33, 64, 0.9, '#ffffff');
+    } else {
+      roundedRect(c, x, y, 64, 64, 15, cols[i]);
+      c.textCentered(x + 32, y + 22, letters[i], 3, '#ffffff');
+    }
+    c.textCentered(x + 32, y + 72, labels[i], 1, C.ink);
+  }
+  c.rect(0, 844 - 92, 390, 92, '#c7d0da');
+  const dockCols = ['#3aa06a', '#4a7fd4', '#7fb8d4', '#d49a3a'];
+  const dockLetters = ['T', 'C', 'S', 'M'];
+  for (let i = 0; i < 4; i++) {
+    const x = 24 + i * 88;
+    const y = 844 - 92 + 12;
+    roundedRect(c, x, y, 64, 64, 15, dockCols[i]);
+    c.textCentered(x + 32, y + 22, dockLetters[i], 3, '#ffffff');
+  }
+  return c;
+}
+
 function screenMobileDashboard() {
   configure(390);
   const c = new Canvas(W, 980);
@@ -607,9 +694,11 @@ screenKas().save(path.join(OUT, '05-kas-rt.png'));
 screenPengumuman().save(path.join(OUT, '06-pengumuman.png'));
 screenAduanWarga().save(path.join(OUT, '07-aduan-warga.png'));
 screenAduanPengurus().save(path.join(OUT, '08-aduan-pengurus.png'));
+makeIcons(path.join(__dirname, '..', 'public', 'icons'));
 configure(390);
 screenLogin().save(path.join(OUT, '09-mobile-login.png'));
 screenMobileDashboard().save(path.join(OUT, '10-mobile-dashboard-pengurus.png'));
 screenMobileKas().save(path.join(OUT, '11-mobile-kas-rt.png'));
 screenMobileAduan().save(path.join(OUT, '12-mobile-aduan.png'));
+screenMobileHome().save(path.join(OUT, '13-mobile-home-screen.png'));
 console.log('Selesai.');
