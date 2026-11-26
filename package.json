@@ -1,0 +1,15 @@
+{
+  "name": "rt-kita",
+  "version": "0.1.0",
+  "description": "Aplikasi manajemen RT: data warga, kas & iuran, pengumuman, aduan. Tanpa dependensi eksternal.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "mockups": "node tools/render-mockups.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "license": "MIT"
+}

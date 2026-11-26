@@ -1,0 +1,17 @@
+{
+  "name": "RT Kita",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "RT Kita",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "node -v && npm test",
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
