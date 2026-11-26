@@ -175,26 +175,55 @@ class Canvas {
   }
 }
 
-const W = 1120;
-const PAD = 24;
-const CW = W - PAD * 2;
+let W = 1120;
+let PAD = 24;
+let CW = W - PAD * 2;
+
+function configure(width) {
+  W = width;
+  PAD = width < 640 ? 12 : 24;
+  CW = W - PAD * 2;
+}
 
 function nav(c, active, links, userLabel) {
-  c.rect(0, 0, W, 48, C.primary);
-  c.text(PAD, 12, 'RT KITA', 3, '#ffffff');
-  let x = PAD + c.textWidth('RT KITA', 3) + 30;
-  for (const [label, key] of links) {
-    const w = c.textWidth(label, 2) + 16;
-    if (key === active) c.rect(x - 8, 8, w, 32, C.primaryDark);
-    c.text(x, 18, label, 2, C.navText);
-    x += w + 14;
-  }
+  const narrow = W < 640;
+  const brandScale = narrow ? 2 : 3;
+  c.rect(0, 0, W, 46, C.primary);
+  c.text(PAD, narrow ? 15 : 12, 'RT KITA', brandScale, '#ffffff');
   const right = 'KELUAR';
   const bw = c.textWidth(right, 2) + 20;
-  c.strokeRect(W - PAD - bw, 10, bw, 28, C.navText);
-  c.text(W - PAD - bw + 10, 18, right, 2, C.navText);
+  c.strokeRect(W - PAD - bw, 10, bw, 26, C.navText);
+  c.text(W - PAD - bw + 10, 17, right, 2, C.navText);
   const ul = userLabel.toUpperCase();
-  c.text(W - PAD - bw - 14 - c.textWidth(ul, 2), 18, ul, 2, C.navText);
+  const us = narrow ? 1 : 2;
+  const ux = W - PAD - bw - 12 - c.textWidth(ul, us);
+  if (ux > PAD + c.textWidth('RT KITA', brandScale) + 16) c.text(ux, 18, ul, us, C.navText);
+  if (!narrow) {
+    let x = PAD + c.textWidth('RT KITA', 3) + 30;
+    for (const [label, key] of links) {
+      const w = c.textWidth(label, 2) + 16;
+      if (key === active) c.rect(x - 8, 8, w, 32, C.primaryDark);
+      c.text(x, 18, label, 2, C.navText);
+      x += w + 14;
+    }
+    return 46;
+  }
+  let x = PAD;
+  let y = 46;
+  const rowH = 34;
+  c.rect(0, 46, W, rowH, C.primaryDark);
+  for (const [label, key] of links) {
+    const w = c.textWidth(label, 2) + 16;
+    if (x + w > W - PAD) {
+      x = PAD;
+      y += rowH;
+      c.rect(0, y, W, rowH, C.primaryDark);
+    }
+    if (key === active) c.rect(x - 8, y + 3, w, 28, C.primary);
+    c.text(x, y + 11, label, 2, C.navText);
+    x += w + 10;
+  }
+  return y + rowH;
 }
 
 function h1(c, y, str) { c.text(PAD, y, str, 3, C.ink); return y + 34; }
@@ -207,6 +236,22 @@ function card(c, x, y, w, h, title, value, sub) {
   c.text(x + 12, y + 10, title, 1, C.muted);
   c.text(x + 12, y + 26, value, 3, C.ink);
   if (sub) c.text(x + 12, y + h - 18, sub, 1, C.muted);
+}
+
+function cardGrid(c, y, cards, cardW, gap) {
+  let x = PAD;
+  let rowH = 0;
+  for (const [t, v, s] of cards) {
+    if (x + cardW > PAD + CW) {
+      x = PAD;
+      y += rowH + gap;
+      rowH = 0;
+    }
+    card(c, x, y, cardW, 92, t, v, s);
+    rowH = 92;
+    x += cardW + gap;
+  }
+  return y + rowH;
 }
 
 function button(c, x, y, w, h, label, color = C.primary, textColor = '#ffffff') {
@@ -264,17 +309,26 @@ function item(c, x, y, w, h, title, meta, badges, bodyLines, thumb, tanggapan) {
   let tx = x + 14;
   tx += c.text(tx, y + 12, title, 2, C.ink) + 10;
   for (const b of badges) { tx += badge(c, tx, y + 12, b[0], b[1], b[2]) + 8; }
-  c.text(tx, y + 14, meta, 1, C.muted);
-  let ly = y + 38;
+  let ly;
+  if (W < 640) {
+    c.text(x + 14, y + 36, meta, 1, C.muted);
+    ly = y + 56;
+  } else {
+    c.text(tx, y + 14, meta, 1, C.muted);
+    ly = y + 38;
+  }
   for (const line of bodyLines) { c.text(x + 14, ly, line, 2, C.ink); ly += 20; }
   if (tanggapan) {
     c.rect(x + 14, ly + 2, Math.min(c.textWidth(tanggapan, 2) + 20, w - 28), 26, C.tanggapanBg);
     c.text(x + 24, ly + 8, tanggapan, 2, C.ink);
+    ly += 30;
   }
   if (thumb) {
-    c.rect(x + w - 14 - 120, y + 12, 120, 84, '#dfe5ea');
-    c.strokeRect(x + w - 14 - 120, y + 12, 120, 84, C.line);
-    c.textCentered(x + w - 14 - 60, y + 48, 'FOTO', 2, C.muted);
+    const txp = W < 640 ? x + 14 : x + w - 14 - 120;
+    const typ = W < 640 ? ly + 6 : y + 12;
+    c.rect(txp, typ, 120, 84, '#dfe5ea');
+    c.strokeRect(txp, typ, 120, 84, C.line);
+    c.textCentered(txp + 60, typ + 36, 'FOTO', 2, C.muted);
   }
 }
 
@@ -299,8 +353,8 @@ function screenLogin() {
 
 function screenDashboardPengurus() {
   const c = new Canvas(W, 900);
-  nav(c, 'dashboard', NAV_LINKS, 'Pengurus RT · pengurus');
-  let y = h1(c, 70, 'DASHBOARD');
+  const navH = nav(c, 'dashboard', NAV_LINKS, 'Pengurus RT · pengurus');
+  let y = h1(c, navH + 22, 'DASHBOARD');
   y = muted(c, y, 'RINGKASAN RT - JUNI 2025') + 8;
   const cards = [
     ['KARTU KELUARGA', '2', ''],
@@ -309,9 +363,7 @@ function screenDashboardPengurus() {
     ['IURAN JUNI 2025', '1/2 LUNAS', 'LIHAT IURAN'],
     ['ADUAN BELUM SELESAI', '1', 'LIHAT ADUAN'],
   ];
-  let cx = PAD;
-  for (const [t, v, s] of cards) { card(c, cx, y, 200, 92, t, v, s); cx += 212; }
-  y += 92 + 30;
+  y = cardGrid(c, y, cards, W < 640 ? 170 : 200, 12) + 30;
   y = h2(c, y, 'PENGUMUMAN TERBARU') + 6;
   item(c, PAD, y, CW, 84, 'KERJA BAKTI HARI MINGGU', '12/06/2025 · OLEH PENGURUS RT',
     [['PENTING', C.badgePentingBg, C.danger]],
@@ -325,12 +377,10 @@ function screenDashboardPengurus() {
 
 function screenDashboardWarga() {
   const c = new Canvas(W, 980);
-  nav(c, 'dashboard', NAV_LINKS_WARGA, 'Budi Santoso · warga');
-  let y = h1(c, 70, 'HALO, BUDI SANTOSO');
+  const navH = nav(c, 'dashboard', NAV_LINKS_WARGA, 'Budi Santoso · warga');
+  let y = h1(c, navH + 22, 'HALO, BUDI SANTOSO');
   y += 8;
-  card(c, PAD, y, 330, 92, 'KARTU KELUARGA', '3201000001', 'BUDI SANTOSO · JL. MERDEKA NO. 1');
-  card(c, PAD + 342, y, 200, 92, 'ANGGOTA KELUARGA', '3', '');
-  y += 92 + 30;
+  y = cardGrid(c, y, [['KARTU KELUARGA', '3201000001', 'BUDI SANTOSO · JL. MERDEKA NO. 1'], ['ANGGOTA KELUARGA', '3', '']], W < 640 ? 170 : 330, 12) + 30;
   y = h2(c, y, 'IURAN SAYA') + 6;
   const dueRows = [['JUNI 2025', 'RP 50.000', 'LUNAS', '12/06/2025']];
   table(c, PAD, y, CW, ['PERIODE', 'JUMLAH', 'STATUS', 'DIBAYAR'], dueRows, [0.25, 0.25, 0.25, 0.25]);
@@ -348,8 +398,8 @@ function screenDashboardWarga() {
 
 function screenWarga() {
   const c = new Canvas(W, 760);
-  nav(c, 'warga', NAV_LINKS, 'Pengurus RT · pengurus');
-  let y = h1(c, 70, 'DATA WARGA & KK');
+  const navH = nav(c, 'warga', NAV_LINKS, 'Pengurus RT · pengurus');
+  let y = h1(c, navH + 22, 'DATA WARGA & KK');
   y = h2(c, y + 6, 'TAMBAH KK BARU') + 4;
   const fy = y;
   field(c, PAD, fy, 220, 'NO. KK', '3201000003');
@@ -369,12 +419,9 @@ function screenWarga() {
 
 function screenKas() {
   const c = new Canvas(W, 1060);
-  nav(c, 'kas', NAV_LINKS, 'Pengurus RT · pengurus');
-  let y = h1(c, 70, 'KAS RT');
-  card(c, PAD, y, 300, 92, 'SALDO KAS', 'RP 70.000', '');
-  card(c, PAD + 312, y, 300, 92, 'PEMASUKAN JUNI 2025', 'RP 100.000', '');
-  card(c, PAD + 624, y, 300, 92, 'PENGELUARAN JUNI 2025', 'RP 30.000', '');
-  y += 92 + 12;
+  const navH = nav(c, 'kas', NAV_LINKS, 'Pengurus RT · pengurus');
+  let y = h1(c, navH + 22, 'KAS RT');
+  y = cardGrid(c, y, [['SALDO KAS', 'RP 70.000', ''], ['PEMASUKAN JUNI 2025', 'RP 100.000', ''], ['PENGELUARAN JUNI 2025', 'RP 30.000', '']], W < 640 ? 170 : 300, 12) + 12;
   c.text(PAD, y, 'LAPORAN KAS PERIODE JUNI 2025', 2, C.primary);
   y += 30;
   y = h2(c, y, 'TAMBAH TRANSAKSI') + 4;
@@ -419,8 +466,8 @@ function screenKas() {
 
 function screenPengumuman() {
   const c = new Canvas(W, 860);
-  nav(c, 'pengumuman', NAV_LINKS, 'Pengurus RT · pengurus');
-  let y = h1(c, 70, 'PENGUMUMAN');
+  const navH = nav(c, 'pengumuman', NAV_LINKS, 'Pengurus RT · pengurus');
+  let y = h1(c, navH + 22, 'PENGUMUMAN');
   y = h2(c, y + 4, 'BUAT PENGUMUMAN') + 4;
   const fx = PAD;
   let fy = field(c, fx, y, 500, 'JUDUL', '') + 12;
@@ -443,8 +490,8 @@ function screenPengumuman() {
 
 function screenAduanWarga() {
   const c = new Canvas(W, 940);
-  nav(c, 'aduan', NAV_LINKS_WARGA, 'Budi Santoso · warga');
-  let y = h1(c, 70, 'ADUAN SAYA');
+  const navH = nav(c, 'aduan', NAV_LINKS_WARGA, 'Budi Santoso · warga');
+  let y = h1(c, navH + 22, 'ADUAN SAYA');
   y = h2(c, y + 4, 'KIRIM ADUAN BARU') + 4;
   const fx = PAD;
   let fy = field(c, fx, y, 420, 'JUDUL', 'LAMPU JALAN MATI') + 12;
@@ -467,8 +514,8 @@ function screenAduanWarga() {
 
 function screenAduanPengurus() {
   const c = new Canvas(W, 720);
-  nav(c, 'aduan', NAV_LINKS, 'Pengurus RT · pengurus');
-  let y = h1(c, 70, 'ADUAN WARGA');
+  const navH = nav(c, 'aduan', NAV_LINKS, 'Pengurus RT · pengurus');
+  let y = h1(c, navH + 22, 'ADUAN WARGA');
   y += 6;
   item(c, PAD, y, CW, 150, 'LAMPU JALAN MATI', 'BUDI SANTOSO · 12/06/2025',
     [['KEAMANAN', C.badgeNetralBg, C.muted], ['BARU', C.badgeBaruBg, '#3b4fc0']],
@@ -480,8 +527,78 @@ function screenAduanPengurus() {
   return c;
 }
 
+function screenMobileDashboard() {
+  configure(390);
+  const c = new Canvas(W, 980);
+  const navH = nav(c, 'dashboard', NAV_LINKS, 'Pengurus RT');
+  let y = h1(c, navH + 20, 'DASHBOARD');
+  y = muted(c, y, 'RINGKASAN RT - JUNI 2025') + 6;
+  y = cardGrid(c, y, [
+    ['KARTU KELUARGA', '2', ''],
+    ['WARGA', '5', ''],
+    ['SALDO KAS', 'RP 70.000', ''],
+    ['IURAN JUNI', '1/2 LUNAS', ''],
+    ['ADUAN OPEN', '1', ''],
+  ], 170, 10) + 22;
+  y = h2(c, y, 'PENGUMUMAN TERBARU') + 4;
+  item(c, PAD, y, CW, 118, 'KERJA BAKTI HARI MINGGU', '12/06/2025 · OLEH PENGURUS RT',
+    [['PENTING', C.badgePentingBg, C.danger]],
+    ['DIHARAPKAN KEHADIRAN SELURURUH WARGA PADA PUKUL 07.00 DI BALAI RT.']);
+  y += 118 + 22;
+  y = h2(c, y, 'ADUAN TERBARU') + 4;
+  table(c, PAD, y, CW, ['ID', 'JUDUL', 'STATUS'], [['1', 'LAMPU JALAN MATI', '']], [0.1, 0.62, 0.28], 34,
+    (cc, row, x, ry, w, cols) => badge(cc, cols[2].x + 8, ry + 8, 'BARU', C.badgeBaruBg, '#3b4fc0'));
+  return c;
+}
+
+function screenMobileKas() {
+  configure(390);
+  const c = new Canvas(W, 1000);
+  const navH = nav(c, 'kas', NAV_LINKS, 'Pengurus RT');
+  let y = h1(c, navH + 20, 'KAS RT');
+  y = cardGrid(c, y, [['SALDO KAS', 'RP 70.000', ''], ['PEMASUKAN', 'RP 100.000', ''], ['PENGELUARAN', 'RP 30.000', '']], 170, 10) + 20;
+  y = h2(c, y, 'TAMBAH TRANSAKSI') + 4;
+  let fy = field(c, PAD, y, CW, 'JENIS', 'PEMASUKAN') + 10;
+  fy = field(c, PAD, fy, CW, 'KATEGORI', 'IURAN') + 10;
+  fy = field(c, PAD, fy, CW, 'JUMLAH (RP)', '50000') + 10;
+  fy = field(c, PAD, fy, CW, 'TANGGAL', '2025-06-12') + 10;
+  button(c, PAD, fy, CW, 36, 'SIMPAN');
+  y = fy + 36 + 26;
+  y = h2(c, y, 'IURAN - JUNI 2025') + 4;
+  table(c, PAD, y, CW, ['KK', 'JUMLAH', 'STATUS'],
+    [['3201000001', 'RP 50.000', ''], ['3201000002', 'RP 50.000', '']],
+    [0.34, 0.33, 0.33], 38,
+    (cc, row, x, ry, w, cols) => {
+      if (row[0] === '3201000001') badge(cc, cols[2].x + 8, ry + 10, 'LUNAS', C.badgeOkBg, C.ok);
+      else badge(cc, cols[2].x + 8, ry + 10, 'BELUM', C.badgeWarnBg, C.warning);
+    });
+  return c;
+}
+
+function screenMobileAduan() {
+  configure(390);
+  const c = new Canvas(W, 1000);
+  const navH = nav(c, 'aduan', NAV_LINKS_WARGA, 'Budi Santoso');
+  let y = h1(c, navH + 20, 'ADUAN SAYA');
+  y = h2(c, y + 4, 'KIRIM ADUAN BARU') + 4;
+  let fy = field(c, PAD, y, CW, 'JUDUL', 'LAMPU JALAN MATI') + 10;
+  selectBox(c, PAD, fy, CW, 'KATEGORI', 'KEAMANAN');
+  fy += 44 + 10;
+  fy = field(c, PAD, fy, CW, 'ISI ADUAN', '', { isArea: true, areaH: 64 }) + 10;
+  field(c, PAD, fy, CW, 'FOTO (OPSIONAL)', 'TIDAK ADA FILE DIPILIH');
+  fy += 44 + 10;
+  button(c, PAD, fy, CW, 36, 'KIRIM ADUAN');
+  y = fy + 36 + 26;
+  y = h2(c, y, 'RIWAYAT ADUAN SAYA') + 4;
+  item(c, PAD, y, CW, 200, 'LAMPU JALAN MATI', '12/06/2025',
+    [['KEAMANAN', C.badgeNetralBg, C.muted], ['BARU', C.badgeBaruBg, '#3b4fc0']],
+    ['MOHON SEGERA DIPERBAIKI, GELAP DI BLOK B.'], true, 'TANGGAPAN: BELUM ADA');
+  return c;
+}
+
 const OUT = path.join(__dirname, '..', 'docs', 'screenshots');
-console.log('Merender mockup UI ke ' + OUT);
+console.log('Merender mockup UI (desktop + mobile) ke ' + OUT);
+configure(1120);
 screenLogin().save(path.join(OUT, '01-login.png'));
 screenDashboardPengurus().save(path.join(OUT, '02-dashboard-pengurus.png'));
 screenDashboardWarga().save(path.join(OUT, '03-dashboard-warga.png'));
@@ -490,4 +607,9 @@ screenKas().save(path.join(OUT, '05-kas-rt.png'));
 screenPengumuman().save(path.join(OUT, '06-pengumuman.png'));
 screenAduanWarga().save(path.join(OUT, '07-aduan-warga.png'));
 screenAduanPengurus().save(path.join(OUT, '08-aduan-pengurus.png'));
+configure(390);
+screenLogin().save(path.join(OUT, '09-mobile-login.png'));
+screenMobileDashboard().save(path.join(OUT, '10-mobile-dashboard-pengurus.png'));
+screenMobileKas().save(path.join(OUT, '11-mobile-kas-rt.png'));
+screenMobileAduan().save(path.join(OUT, '12-mobile-aduan.png'));
 console.log('Selesai.');

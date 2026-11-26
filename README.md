@@ -34,6 +34,12 @@ Mockup setiap halaman ada di [`docs/screenshots/`](docs/screenshots) dan bisa di
 | Pengumuman | [06-pengumuman.png](docs/screenshots/06-pengumuman.png) |
 | Aduan (warga) | [07-aduan-warga.png](docs/screenshots/07-aduan-warga.png) |
 | Aduan (pengurus) | [08-aduan-pengurus.png](docs/screenshots/08-aduan-pengurus.png) |
+| Login (HP 390px) | [09-mobile-login.png](docs/screenshots/09-mobile-login.png) |
+| Dashboard pengurus (HP) | [10-mobile-dashboard-pengurus.png](docs/screenshots/10-mobile-dashboard-pengurus.png) |
+| Kas RT (HP) | [11-mobile-kas-rt.png](docs/screenshots/11-mobile-kas-rt.png) |
+| Aduan (HP) | [12-mobile-aduan.png](docs/screenshots/12-mobile-aduan.png) |
+
+Tampilan **responsif** — saat dibuka di HP, navigasi menumpuk, kartu & form menjadi satu kolom, tombol menjadi full-width, dan tabel bisa digeser horizontal (`public/style.css`, media query `max-width: 640px`).
 
 ## Akun default (dari data contoh)
 

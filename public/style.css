@@ -23,7 +23,7 @@ body {
 .topnav {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px 14px;
   flex-wrap: wrap;
   background: var(--primary);
   color: #fff;
@@ -44,7 +44,7 @@ h2 { font-size: 1.1rem; margin: 26px 0 10px; }
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
   margin: 14px 0;
 }
@@ -161,6 +161,25 @@ tr:last-child td { border-bottom: none; }
 .login-box code { background: #eef2f5; padding: 1px 5px; border-radius: 4px; font-size: 0.8rem; }
 
 @media (max-width: 640px) {
+  .topnav { padding: 8px 12px; font-size: 0.9rem; }
+  .topnav .brand { font-size: 0.95rem; }
+  .topnav a { padding: 4px 6px; }
+  .container { padding: 14px 12px 48px; }
+  h1 { font-size: 1.25rem; margin: 14px 0 8px; }
+  h2 { font-size: 1rem; margin: 20px 0 8px; }
+  .cards { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .card { padding: 10px; }
+  .card-value { font-size: 1.15rem; }
+  .form { padding: 12px; }
   .form.inline { flex-direction: column; align-items: stretch; }
+  .form.inline .field { flex: 1 1 auto; }
   .field { min-width: 0; }
+  input, select, textarea { font-size: 16px; }
+  .btn { width: 100%; padding: 11px 16px; }
+  .btn.small { width: auto; padding: 4px 10px; }
+  .table-wrap { font-size: 0.85rem; }
+  th, td { padding: 7px 8px; }
+  .login-box { margin: 32px 12px; padding: 18px; }
+  .item { padding: 10px 12px; }
+  .thumb { max-width: 120px; max-height: 90px; }
 }
