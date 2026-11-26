@@ -1,5 +1,7 @@
 # 🏘️ RT Kita
 
+![CI](https://github.com/abdulaziz198710-del/rt-kita/actions/workflows/ci.yml/badge.svg)
+
 Aplikasi web manajemen untuk satu RT (Rukun Tetangga): data warga & KK, kas RT + iuran, pengumuman, dan aduan warga.
 
 Dibuat **tanpa dependensi eksternal** — cukup Node.js versi 22 ke atas, tidak perlu `npm install`.
